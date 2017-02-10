@@ -20,6 +20,8 @@ type Resource struct {
 	URL    string
 	Name   string
 	Client *http.Client
+
+	where []string
 }
 
 func (r *Resource) Download(location string) error {
@@ -46,5 +48,11 @@ func (r *Resource) Download(location string) error {
 		return errors.Annotatef(err, "Write %s", filepath.Join(location, r.Name))
 	}
 
+	r.where = append(r.where, location)
+
 	return nil
+}
+
+func (r *Resource) Where() []string {
+	return r.where
 }
