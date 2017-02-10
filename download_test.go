@@ -29,7 +29,7 @@ func TestDownload(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = d.Download(temp)
+		err = d.Download(temp, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -78,7 +78,7 @@ func TestWhere(t *testing.T) {
 			}
 
 			where = append(where, temp)
-			err = d.Download(temp)
+			err = d.Download(temp, nil)
 			if err != nil {
 				t.Fatal(err)
 			}

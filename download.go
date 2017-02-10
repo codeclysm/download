@@ -17,18 +17,25 @@ import (
 )
 
 type Resource struct {
-	URL    string
-	Name   string
-	Client *http.Client
+	URL  string
+	Name string
 
 	where []string
 }
 
-func (r *Resource) Download(location string) error {
-	if r.Client == nil {
-		r.Client = &http.Client{}
+type Opts struct {
+	Client *http.Client
+}
+
+func (r *Resource) Download(location string, opts *Opts) error {
+	if opts == nil {
+		opts = &Opts{}
 	}
-	resp, err := r.Client.Get(r.URL)
+
+	if opts.Client == nil {
+		opts.Client = &http.Client{}
+	}
+	resp, err := opts.Client.Get(r.URL)
 	if err != nil {
 		return errors.Annotatef(err, "Get %s", r.URL)
 	}
