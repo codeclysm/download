@@ -25,6 +25,7 @@ type Resource struct {
 
 type Opts struct {
 	Client *http.Client
+	Cache  bool
 }
 
 func (r *Resource) Download(location string, opts *Opts) error {
@@ -32,6 +33,12 @@ func (r *Resource) Download(location string, opts *Opts) error {
 		opts = &Opts{}
 	}
 
+	// Check if already downloaded
+	if opts.Cache && in(r.where, location) {
+		return nil
+	}
+
+	// Check the http Client
 	if opts.Client == nil {
 		opts.Client = &http.Client{}
 	}
@@ -62,4 +69,13 @@ func (r *Resource) Download(location string, opts *Opts) error {
 
 func (r *Resource) Where() []string {
 	return r.where
+}
+
+func in(slice []string, el string) bool {
+	for i := range slice {
+		if slice[i] == el {
+			return true
+		}
+	}
+	return false
 }

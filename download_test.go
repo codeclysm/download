@@ -98,8 +98,27 @@ func TestWhere(t *testing.T) {
 				t.Errorf("%s should be in %s", el, where)
 			}
 		}
-
 	}
+}
+
+func TestCache(t *testing.T) {
+	downloaded := false
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if downloaded {
+			t.Errorf("It shouldn't download it again")
+		}
+		downloaded = true
+		http.ServeFile(w, r, path.Join("testdata", "test1.txt"))
+	}))
+	defer ts.Close()
+
+	d := download.Resource{URL: ts.URL, Name: "test1.txt"}
+	temp, err := ioutil.TempDir("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	d.Download(temp, &download.Opts{Cache: true})
+	d.Download(temp, &download.Opts{Cache: true})
 }
 
 func in(slice []string, el string) bool {
