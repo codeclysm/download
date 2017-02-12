@@ -30,6 +30,7 @@ type Opts struct {
 	Client    *http.Client
 	Cache     bool
 	Sha256Sum string
+	Handler   func(body io.Reader, name, location string) error
 }
 
 func (r *Resource) Download(location string, opts *Opts) error {
@@ -42,13 +43,14 @@ func (r *Resource) Download(location string, opts *Opts) error {
 		return nil
 	}
 
+	client := &http.Client{}
 	// Check the http Client
-	if opts.Client == nil {
-		opts.Client = &http.Client{}
+	if opts.Client != nil {
+		client = opts.Client
 	}
 
 	// Request the file
-	resp, err := opts.Client.Get(r.URL)
+	resp, err := client.Get(r.URL)
 	if err != nil {
 		return errors.Annotatef(err, "Get %s", r.URL)
 	}
@@ -71,23 +73,38 @@ func (r *Resource) Download(location string, opts *Opts) error {
 		}
 	}
 
-	err = os.MkdirAll(location, 0755)
+	// Execute function
+	if opts.Handler != nil {
+		err = opts.Handler(body, r.Name, location)
+	} else {
+		err = defaultHandler(body, r.Name, location)
+	}
+
+	if err != nil {
+		return errors.Annotate(err, "Handling")
+	}
+
+	// Save the location
+	r.where = append(r.where, location)
+
+	return nil
+}
+
+func defaultHandler(body io.Reader, name, location string) error {
+	err := os.MkdirAll(location, 0755)
 	if err != nil {
 		return errors.Annotatef(err, "Create %s", location)
 	}
 
-	file, err := os.OpenFile(filepath.Join(location, r.Name), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
+	file, err := os.OpenFile(filepath.Join(location, name), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
-		return errors.Annotatef(err, "Create %s", filepath.Join(location, r.Name))
+		return errors.Annotatef(err, "Create %s", filepath.Join(location, name))
 	}
 
 	_, err = io.Copy(file, body)
 	if err != nil {
-		return errors.Annotatef(err, "Write %s", filepath.Join(location, r.Name))
+		return errors.Annotatef(err, "Write %s", filepath.Join(location, name))
 	}
-
-	r.where = append(r.where, location)
-
 	return nil
 }
 

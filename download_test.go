@@ -1,6 +1,8 @@
 package download_test
 
 import (
+	"errors"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -135,6 +137,25 @@ func TestSha256Sum(t *testing.T) {
 	err = d.Download(temp, &download.Opts{Cache: true, Sha256Sum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"})
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestHandler(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, path.Join("testdata", "test1.txt"))
+	}))
+	defer ts.Close()
+
+	d := download.Resource{URL: ts.URL, Name: "test1.txt"}
+	temp, err := ioutil.TempDir("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = d.Download(temp, &download.Opts{Handler: func(body io.Reader, name, location string) error {
+		return errors.New("")
+	}})
+	if err == nil {
+		t.Fatal("Err should not be nil")
 	}
 }
 
