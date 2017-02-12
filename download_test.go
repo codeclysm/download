@@ -121,6 +121,23 @@ func TestCache(t *testing.T) {
 	d.Download(temp, &download.Opts{Cache: true})
 }
 
+func TestSha256Sum(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, path.Join("testdata", "test1.txt"))
+	}))
+	defer ts.Close()
+
+	d := download.Resource{URL: ts.URL, Name: "test1.txt"}
+	temp, err := ioutil.TempDir("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = d.Download(temp, &download.Opts{Cache: true, Sha256Sum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func in(slice []string, el string) bool {
 	for i := range slice {
 		if slice[i] == el {

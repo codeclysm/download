@@ -8,6 +8,9 @@
 package download
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"io"
 	"net/http"
 	"os"
@@ -24,8 +27,9 @@ type Resource struct {
 }
 
 type Opts struct {
-	Client *http.Client
-	Cache  bool
+	Client    *http.Client
+	Cache     bool
+	Sha256Sum string
 }
 
 func (r *Resource) Download(location string, opts *Opts) error {
@@ -42,9 +46,29 @@ func (r *Resource) Download(location string, opts *Opts) error {
 	if opts.Client == nil {
 		opts.Client = &http.Client{}
 	}
+
+	// Request the file
 	resp, err := opts.Client.Get(r.URL)
 	if err != nil {
 		return errors.Annotatef(err, "Get %s", r.URL)
+	}
+	defer resp.Body.Close()
+
+	var body io.Reader
+	body = resp.Body
+
+	// Checksum
+	if opts.Sha256Sum != "" {
+		var buf bytes.Buffer
+		body = io.TeeReader(body, &buf)
+		hasher := sha256.New()
+		_, err := io.Copy(hasher, &buf)
+		if err != nil {
+			return errors.Annotate(err, "Calculate Sha256Sum")
+		}
+		if opts.Sha256Sum != hex.EncodeToString(hasher.Sum(nil)) {
+			return errors.New("Sha256sum check failed")
+		}
 	}
 
 	err = os.MkdirAll(location, 0755)
@@ -57,7 +81,7 @@ func (r *Resource) Download(location string, opts *Opts) error {
 		return errors.Annotatef(err, "Create %s", filepath.Join(location, r.Name))
 	}
 
-	_, err = io.Copy(file, resp.Body)
+	_, err = io.Copy(file, body)
 	if err != nil {
 		return errors.Annotatef(err, "Write %s", filepath.Join(location, r.Name))
 	}
