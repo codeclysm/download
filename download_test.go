@@ -2,6 +2,7 @@ package download_test
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -12,6 +13,62 @@ import (
 
 	download "github.com/codeclysm/downloader"
 )
+
+func Example() {
+	img := struct {
+		download.Resource
+		Author string
+	}{}
+
+	img.Name = "Mona Lisa"
+	img.Author = "Leonardo da Vinci"
+	img.URL = "https://upload.wikimedia.org/wikipedia/commons/6/6a/Mona_Lisa.jpg"
+
+	fmt.Println(img.Download("paintings", nil))
+	fmt.Println(img.Where())
+	// Output:
+	// <nil>
+	// [paintings]
+}
+
+func ExampleCache() {
+	img := struct {
+		download.Resource
+		Author string
+	}{}
+
+	img.Name = "Mona Lisa"
+	img.Author = "Leonardo da Vinci"
+	img.URL = "https://upload.wikimedia.org/wikipedia/commons/6/6a/Mona_Lisa.jpg"
+
+	fmt.Println(img.Download("paintings", nil))
+
+	// This time it won't be downloaded again
+	fmt.Println(img.Download("paintings", &download.Opts{Cache: true}))
+	fmt.Println(img.Where())
+	// Output:
+	// <nil>
+	// <nil>
+	// [paintings]
+}
+
+func ExampleSha256Sum() {
+	img := struct {
+		download.Resource
+		Author string
+	}{}
+
+	img.Name = "Mona Lisa"
+	img.Author = "Leonardo da Vinci"
+	img.URL = "https://upload.wikimedia.org/wikipedia/commons/6/6a/Mona_Lisa.jpg"
+
+	// It fails because the checksum is wrong
+	fmt.Println(img.Download("paintings", &download.Opts{Sha256Sum: "wrong checksum"}))
+	fmt.Println(img.Where())
+	// Output:
+	// Sha256sum check failed
+	// []
+}
 
 func TestDownload(t *testing.T) {
 	cases := []struct {

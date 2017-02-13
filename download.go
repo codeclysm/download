@@ -1,10 +1,5 @@
-// Download this thing here
-// Download this thing here, here's how to process it
-// Download this thing here, only if it matches this sha1sum
-// Download this thing here, but only if you haven't do it already
-// Have I already downloaded this thing here?
-// Where did I download this thing?
-
+// Package download helps with download files and keeping track of where you have downloaded them.
+// It's designed to be embedded in another struct. Composition ahoy!
 package download
 
 import (
@@ -19,6 +14,7 @@ import (
 	"github.com/juju/errors"
 )
 
+// Resource is an embeddable struct that keep tracks of where a resource is being downloaded.
 type Resource struct {
 	URL  string
 	Name string
@@ -26,13 +22,20 @@ type Resource struct {
 	where []string
 }
 
+// Opts is a struct of options to be passed to the Download function
 type Opts struct {
-	Client    *http.Client
-	Cache     bool
+	// Client is the http client used to fetch the resource
+	Client *http.Client
+	// Cache is a flag that tells the Download func not to download twice the resource in the same location
+	Cache bool
+	// Sha256Sum is the sum that's used to check that the download was correct
 	Sha256Sum string
-	Handler   func(body io.Reader, name, location string) error
+	// Handler is the function that saves or extracts the resource downloaded
+	Handler func(body io.Reader, name, location string) error
 }
 
+// Download will retrieve the resource at .URL and save it on disk. Its behaviour
+// can be modified with some options
 func (r *Resource) Download(location string, opts *Opts) error {
 	if opts == nil {
 		opts = &Opts{}
@@ -108,6 +111,7 @@ func defaultHandler(body io.Reader, name, location string) error {
 	return nil
 }
 
+// Where returns a list of all the places where the resource was downloaded to
 func (r *Resource) Where() []string {
 	return r.where
 }
