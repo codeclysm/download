@@ -31,7 +31,7 @@ func Example() {
 	// [paintings]
 }
 
-func ExampleCache() {
+func Example_Cache() {
 	img := struct {
 		download.Resource
 		Author string
@@ -52,7 +52,7 @@ func ExampleCache() {
 	// [paintings]
 }
 
-func ExampleSha256Sum() {
+func Example_Sha256Sum() {
 	img := struct {
 		download.Resource
 		Author string
