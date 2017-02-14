@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/juju/errors"
 )
@@ -46,7 +47,7 @@ func (r *Resource) Download(location string, opts *Opts) error {
 		return nil
 	}
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 1 * time.Second}
 	// Check the http Client
 	if opts.Client != nil {
 		client = opts.Client
@@ -67,13 +68,17 @@ func (r *Resource) Download(location string, opts *Opts) error {
 		var buf bytes.Buffer
 		body = io.TeeReader(body, &buf)
 		hasher := sha256.New()
-		_, err := io.Copy(hasher, &buf)
+
+		_, err := io.Copy(hasher, body)
 		if err != nil {
 			return errors.Annotate(err, "Calculate Sha256Sum")
 		}
+
 		if opts.Sha256Sum != hex.EncodeToString(hasher.Sum(nil)) {
 			return errors.New("Sha256sum check failed")
 		}
+
+		body = &buf
 	}
 
 	// Execute function

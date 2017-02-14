@@ -22,7 +22,7 @@ func Example() {
 
 	img.Name = "Mona Lisa"
 	img.Author = "Leonardo da Vinci"
-	img.URL = "https://upload.wikimedia.org/wikipedia/commons/6/6a/Mona_Lisa.jpg"
+	img.URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Mona_Lisa.jpg/396px-Mona_Lisa.jpg"
 
 	fmt.Println(img.Download("paintings", nil))
 	fmt.Println(img.Where())
@@ -39,7 +39,7 @@ func Example_Cache() {
 
 	img.Name = "Mona Lisa"
 	img.Author = "Leonardo da Vinci"
-	img.URL = "https://upload.wikimedia.org/wikipedia/commons/6/6a/Mona_Lisa.jpg"
+	img.URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Mona_Lisa.jpg/396px-Mona_Lisa.jpg"
 
 	fmt.Println(img.Download("paintings", nil))
 
@@ -60,7 +60,7 @@ func Example_Sha256Sum() {
 
 	img.Name = "Mona Lisa"
 	img.Author = "Leonardo da Vinci"
-	img.URL = "https://upload.wikimedia.org/wikipedia/commons/6/6a/Mona_Lisa.jpg"
+	img.URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Mona_Lisa.jpg/396px-Mona_Lisa.jpg"
 
 	// It fails because the checksum is wrong
 	fmt.Println(img.Download("paintings", &download.Opts{Sha256Sum: "wrong checksum"}))
@@ -191,7 +191,7 @@ func TestSha256Sum(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = d.Download(temp, &download.Opts{Cache: true, Sha256Sum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"})
+	err = d.Download(temp, &download.Opts{Cache: true, Sha256Sum: "08e7c6cbf0f5a2f87d8541d34f6f6bf278b0225a25a8f543b3cd0a473a44cfa8"})
 	if err != nil {
 		t.Fatal(err)
 	}
